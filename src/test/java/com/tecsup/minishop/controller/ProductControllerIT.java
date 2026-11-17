@@ -58,6 +58,24 @@ class ProductControllerIT {
     }
 
     @Test
+    @DisplayName("POST /api/products — debe ignorar el id enviado por el cliente (java:S4684)")
+    void shouldIgnoreIdSentByClient() throws Exception {
+        // ARRANGE: el cliente intenta fijar el id del producto
+        String json = """
+                {"id": 999, "name": "Teclado", "price": 90.0, "stock": 3}
+                """;
+
+        // ACT & ASSERT: el producto se crea, pero el id lo asigna la base de datos
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.id").value(not(999)))
+                .andExpect(jsonPath("$.name").value("Teclado"));
+    }
+
+    @Test
     @DisplayName("GET /api/products — debe retornar lista de productos")
     void shouldReturnAllProducts() throws Exception {
         // ARRANGE
